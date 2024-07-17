@@ -17,7 +17,7 @@ import gzip
 # Set the cache directory to /tmp
 os.environ['TRANSFORMERS_CACHE'] = '/tmp'
 # Initialize Pinecone
-api_key = str(os.environ.get("PINEACCESSKEY", defaut=None))
+api_key = str(os.environ.get("PINEACCESSKEY", default=None))
 aws_access_key_id = str(os.environ.get("AWSACCESSKEY", default=None))
 aws_secret_access_key = str(os.environ.get("AWSSECRETKEY", default=None))
 aws_region = "us-east-1"
