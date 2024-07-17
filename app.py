@@ -14,8 +14,6 @@ from collections import defaultdict
 import io
 import gzip
 
-app = Flask(__name__)
-
 # Set the cache directory to /tmp
 os.environ['TRANSFORMERS_CACHE'] = '/tmp'
 # Initialize Pinecone
