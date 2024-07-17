@@ -1,0 +1,10 @@
+beautifulsoup4==4.12.3
+boto3==1.34.141
+Flask==3.0.3
+Flask_Cors==4.0.1
+langchain==0.2.8
+pinecone==4.0.0
+Requests==2.32.3
+transformers==4.42.3
+langchain-community
+pinecone-client
