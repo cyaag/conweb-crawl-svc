@@ -98,15 +98,13 @@ def get_text_from_html(content, url):
 
 def lambda_handler(event, context):
     for record in event['Records']:
+        body = json.loads(record['body'])
+        website_url = body.get('url')
+        if not website_url:
+            logging.error('No URL found in the request')
+            return {"statusCode": 400, "body": json.dumps({"error": "URL is required"})}
+
         try:
-            message_body = record['body']
-            input_data = json.loads(message_body)
-            website_url = input_data.get('url')
-
-            if not website_url:
-                logging.error('No URL found in the request')
-                return {"error": "URL is required"}
-
             headers = {'User-Agent': 'Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1)'}
             response = requests.get(website_url, headers=headers)
             response.raise_for_status()
@@ -132,16 +130,16 @@ def lambda_handler(event, context):
                 index.upsert(vectors=[{
                     'id': f"{website_url}",
                     'values': embedding,
-                    'metadata': {'text': chunk}
+                    'metadata': {'text': content}
                 }])
 
-            logging.info('Text data processed and indexed')
+            logging.info("Text data processed and indexed")
+            return {"statusCode": 200, "body": json.dumps({'message': 'Text data processed and indexed'})}
+
         except requests.RequestException as e:
             logging.error(f"Failed to retrieve {website_url}: {e}")
-            return {"error": f"Failed to retrieve {website_url}: {e}"}
+            return {"statusCode": 500, "body": json.dumps({'error': f"Failed to retrieve {website_url}: {e}"})}
 
         except Exception as e:
             logging.error(f"Failed to process text data: {e}")
-            return {"error": f"Failed to process text data: {e}"}
-
-    return {"message": "Processing complete"}
+            return {"statusCode": 500, "body": json.dumps({'error': f"Failed to process text data: {e}"})}
