@@ -99,7 +99,9 @@ def get_text_from_html(content, url):
 def lambda_handler(event, context):
     for record in event['Records']:
         body = json.loads(record['body'])
+        print(body)
         website_url = body.get('url')
+        print(website_url)
         if not website_url:
             logging.error('No URL found in the request')
             return {"statusCode": 400, "body": json.dumps({"error": "URL is required"})}
