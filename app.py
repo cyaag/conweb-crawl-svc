@@ -95,18 +95,22 @@ def get_text_from_html(content, url):
     except Exception as e:
         logging.error('Failed to process HTML: %s', e)
         raise
-
+    
 def lambda_handler(event, context):
+    print(event)
     for record in event['Records']:
-        body = json.loads(record['body'])
-        sns_message = json.loads(body.get('Message', '{}'))
-        website_url = sns_message.get('url')
-        print(website_url)
-        if not website_url:
-            logging.error('No URL found in the request')
-            return {"statusCode": 400, "body": json.dumps({"error": "URL is required"})}
-
         try:
+            # message_body = record['body']
+            # input_data = json.loads(message_body)
+            # website_url = input_data.get('url')
+            body = json.loads(record['body'])
+            sns_message = json.loads(body.get('Message', '{}'))
+            website_url = sns_message.get('url')            
+
+            if not website_url:
+                logging.error('No URL found in the request')
+                return {"error": "URL is required"}
+
             headers = {'User-Agent': 'Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1)'}
             response = requests.get(website_url, headers=headers)
             response.raise_for_status()
@@ -120,28 +124,36 @@ def lambda_handler(event, context):
                 except OSError as e:
                     logging.error("Error decompressing gzipped content: %s", e)
                     content = response.text
+                    print("content within except = ", content)
             else:
                 content = content.decode('utf-8')
 
+            print("content = ", content)
             text_data = get_text_from_html(content, website_url)
+            print("111")
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            print("222")
             chunks = text_splitter.split_text(text_data)
+            print("333")
 
             for chunk in chunks:
+                print("chunk = ", chunk)
                 embedding = bedrock_embeddings.embed_documents([chunk])[0]
+                print("444")
                 index.upsert(vectors=[{
                     'id': f"{website_url}",
                     'values': embedding,
-                    'metadata': {'text': content}
+                    'metadata': {'text': chunk}
                 }])
+            print("555")
 
-            logging.info("Text data processed and indexed")
-            return {"statusCode": 200, "body": json.dumps({'message': 'Text data processed and indexed'})}
-
+            logging.info('Text data processed and indexed')
         except requests.RequestException as e:
             logging.error(f"Failed to retrieve {website_url}: {e}")
-            return {"statusCode": 500, "body": json.dumps({'error': f"Failed to retrieve {website_url}: {e}"})}
+            return {"error": f"Failed to retrieve {website_url}: {e}"}
 
         except Exception as e:
             logging.error(f"Failed to process text data: {e}")
-            return {"statusCode": 500, "body": json.dumps({'error': f"Failed to process text data: {e}"})}
+            return {"error": f"Failed to process text data: {e}"}
+
+    return {"message": "Processing complete"}
