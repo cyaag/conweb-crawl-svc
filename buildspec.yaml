@@ -13,14 +13,14 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image for crawl..
       - docker build -t cohort-crawl-bedrock-svc .
-      - docker tag cohort-crawl-bedrock-svc:$CODEBUILD_BUILD_NUMBER $REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER
+      - docker tag cohort-crawl-bedrock-svc:latest $REPOSITORY_URI:latest
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push $REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER
+      - docker push $REPOSITORY_URI:latest
       - echo Creating image URI JSON...
-      - echo "{\"ImageUri\":\"$REPOSITORY_URI:$CODEBUILD_BUILD_NUMBER\"}" > imageDetail.json
+      - echo "{\"ImageUri\":\"$REPOSITORY_URI:latest\"}" > imageDetail.json
 # artifacts:
 #   files: imageDetail.json
 
