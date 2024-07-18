@@ -99,8 +99,8 @@ def get_text_from_html(content, url):
 def lambda_handler(event, context):
     for record in event['Records']:
         body = json.loads(record['body'])
-        print(body)
-        website_url = body.get('url')
+        sns_message = json.loads(body.get('Message', '{}'))
+        website_url = sns_message.get('url')
         print(website_url)
         if not website_url:
             logging.error('No URL found in the request')
